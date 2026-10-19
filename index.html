@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>全球法律洞察｜文森律所运营</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --panel: #ffffff;
+      --text: #22242a;
+      --muted: #777c86;
+      --line: #e8e9ec;
+      --gold: #9b7a45;
+      --gold-deep: #7f6338;
+      --gold-soft: #f5f0e8;
+      --nav: #25282d;
+      --nav-hover: #32363c;
+      --blue: #567494;
+      --shadow: 0 5px 18px rgba(31, 35, 42, .055);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      letter-spacing: .01em;
+    }
+    button, textarea { font: inherit; }
+    button { cursor: pointer; }
+    svg { display: block; }
+
+    .app { min-height: 100vh; display: grid; grid-template-columns: 176px 1fr; }
+
+    .sidebar {
+      position: fixed; inset: 0 auto 0 0; z-index: 20;
+      width: 176px; background: #fff; color: #6f7c91;
+      display: flex; flex-direction: column; align-items: center;
+      border-right: 1px solid #e7e9ed;
+    }
+    .brand {
+      height: 86px; min-height: 86px; width: 100%; display: grid; place-items: center;
+      color: #a88243; border-bottom: 1px solid #e7e9ed;
+    }
+    .brand-logo { width: 78px; height: 58px; color: #b18a4b; }
+    .brand-logo .logo-word { font: 700 11px Georgia, serif; letter-spacing: .06em; fill: currentColor; stroke: none; }
+    .brand-logo .logo-lines { fill: none; stroke: currentColor; stroke-width: 1.45; stroke-linecap: round; stroke-linejoin: round; }
+    .main-nav { width: 100%; padding: 12px 10px; flex: 1; overflow: auto; scrollbar-width: none; }
+    .main-nav::-webkit-scrollbar { display: none; }
+    .nav-item {
+      width: 100%; min-height: 76px; border: 0; border-radius: 14px; background: transparent; color: #6f7c91;
+      display: flex; flex-direction: column; gap: 7px; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 500; position: relative; transition: .18s ease;
+    }
+    .nav-item:hover { background: #f7f6f3; color: #97723a; }
+    .nav-item.active { color: #987137; background: #f5efe5; }
+    .nav-item.active::before { display: none; }
+    .nav-item svg { width: 25px; height: 25px; stroke: currentColor; fill: none; stroke-width: 1.55; }
+    .nav-bottom { width: 100%; padding: 8px 10px 12px; border-top: 1px solid #edf0f3; }
+
+    .shell { grid-column: 2; min-width: 0; }
+    .topbar {
+      height: 86px; background: #fff; border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 32px;
+      position: sticky; top: 0; z-index: 15;
+    }
+    .crumbs { display: flex; align-items: center; color: #8b8f96; font-size: 13px; }
+    .crumbs b { color: #2b2d31; font-size: 16px; font-weight: 600; margin-right: 14px; }
+    .crumbs .slash { margin: 0 9px; color: #c5c7cb; }
+    .top-actions { display: flex; align-items: center; gap: 18px; color: #777b83; }
+    .icon-btn { border: 0; background: transparent; padding: 6px; color: inherit; position: relative; }
+    .icon-btn svg { width: 19px; height: 19px; }
+    .dot { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #be4d42; right: 4px; top: 4px; }
+    .user { display: flex; align-items: center; gap: 9px; padding-left: 4px; color: #474a50; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: #e8dfd0; color: #8a6d40; display: grid; place-items: center; font-size: 12px; font-weight: 600; }
+
+    .subnav {
+      height: 54px; background: #fff; border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; padding: 0 32px; gap: 32px; position: sticky; top: 86px; z-index: 14;
+    }
+    .subnav-title { font-size: 14px; font-weight: 600; color: #26282d; padding-right: 28px; border-right: 1px solid #e2e3e6; }
+    .subnav button { height: 54px; border: 0; background: transparent; color: #6c7078; position: relative; padding: 0 2px; }
+    .subnav button:hover { color: var(--gold); }
+    .subnav button.active { color: var(--gold-deep); font-weight: 600; }
+    .subnav button.active::after { content: ""; height: 2px; background: var(--gold); position: absolute; left: 0; right: 0; bottom: 0; }
+
+    main { max-width: 1380px; margin: 0 auto; padding: 24px 32px 44px; }
+    .page-view { display: none; animation: fade .2s ease; }
+    .page-view.active { display: block; }
+    @keyframes fade { from { opacity: .25; transform: translateY(2px); } }
+
+    .jurisdiction-wrap { position: relative; margin-bottom: 18px; z-index: 12; }
+    .jurisdiction-trigger {
+      border: 0; background: transparent; padding: 0; display: inline-flex; align-items: center;
+      gap: 12px; color: #273142; text-align: left;
+    }
+    .jurisdiction-trigger:hover .jurisdiction-name { color: var(--gold-deep); }
+    .jurisdiction-code {
+      width: 48px; height: 45px; border: 1px solid #dbe0e6; border-radius: 6px; background: #fff;
+      color: #9a6b32; display: grid; place-items: center; font: 17px Georgia, serif;
+    }
+    .jurisdiction-copy { min-width: 180px; }
+    .jurisdiction-name { display: block; font-size: 16px; font-weight: 600; line-height: 1.3; transition: .15s; }
+    .jurisdiction-label { display: block; color: #6e7887; font-size: 12px; margin-top: 3px; }
+    .jurisdiction-caret { width: 8px; height: 8px; margin: -12px 0 0 3px; border-right: 1.5px solid #96753f; border-bottom: 1.5px solid #96753f; transform: rotate(45deg); transition: .18s; }
+    .jurisdiction-wrap.open .jurisdiction-caret { transform: translateY(4px) rotate(225deg); }
+    .jurisdiction-panel {
+      display: none; position: absolute; left: 0; top: 58px; width: min(820px, calc(100vw - 240px));
+      background: #fff; border: 1px solid #dde2e8; border-radius: 13px; padding: 22px 24px 18px;
+      box-shadow: 0 20px 42px rgba(41,50,63,.16); z-index: 30;
+    }
+    .jurisdiction-wrap.open .jurisdiction-panel { display: block; animation: fade .18s ease; }
+    .scope-shortcuts { display: flex; gap: 10px; margin-bottom: 16px; }
+    .scope-shortcut { border: 0; background: transparent; color: #7a8595; padding: 7px 10px; font-size: 13px; }
+    .scope-shortcut b { color: #4d5868; margin-left: 8px; font-weight: 600; }
+    .scope-shortcut:hover, .scope-shortcut.active { background: #f7f2e9; color: #9a6b32; }
+    .jurisdiction-panel label { display: block; color: #273142; font-size: 13px; margin: 4px 0 8px; }
+    .jurisdiction-search { position: relative; }
+    .jurisdiction-search svg { position: absolute; left: 13px; top: 13px; width: 17px; height: 17px; color: #8b95a3; stroke: currentColor; fill: none; }
+    .jurisdiction-search input {
+      width: 100%; height: 43px; border: 1px solid #d9dfe6; border-radius: 7px; outline: 0;
+      padding: 0 14px 0 40px; color: #343b46; font: inherit;
+    }
+    .jurisdiction-search input:focus { border-color: #b99b68; box-shadow: 0 0 0 3px rgba(155,122,69,.08); }
+    .jurisdiction-count { color: #6d7888; font-size: 12px; margin: 10px 0 8px; }
+    .country-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 18px; max-height: 300px; overflow: auto; padding-right: 4px; }
+    .country-option {
+      border: 1px solid transparent; background: transparent; color: #647083; padding: 9px 12px;
+      display: grid; grid-template-columns: 38px 1fr; text-align: left; border-radius: 7px;
+    }
+    .country-option:hover { background: #f8f8f7; }
+    .country-option.active { background: #f7f1e7; border-color: #eadbc2; color: #93652f; }
+    .country-option .country-code { font-size: 12px; color: #8994a4; }
+    .country-option.active .country-code { color: #93652f; }
+    .country-option .country-name { font-size: 13px; font-weight: 500; }
+    .country-empty { display: none; color: #8a929e; padding: 20px 10px; text-align: center; }
+    .jurisdiction-note { border-top: 1px solid #ebedf0; margin-top: 14px; padding-top: 12px; color: #8a929d; font-size: 11px; }
+
+    .hero {
+      background: linear-gradient(118deg, #fff 0%, #fff 66%, #fbf8f3 100%);
+      border: 1px solid #e7e5e1; box-shadow: var(--shadow); min-height: 296px;
+      display: grid; grid-template-columns: minmax(0, 1fr) 305px; position: relative; overflow: hidden;
+    }
+    .hero::after {
+      content: ""; position: absolute; width: 340px; height: 340px; border: 1px solid rgba(155,122,69,.13);
+      border-radius: 50%; right: -120px; top: -188px;
+    }
+    .hero-main { padding: 30px 36px 29px; position: relative; z-index: 1; }
+    .eyebrow { color: var(--gold); font-size: 12px; letter-spacing: .18em; margin-bottom: 4px; }
+    h1 { margin: 0; font-size: 27px; line-height: 1.4; font-weight: 500; letter-spacing: .04em; }
+    .hero-intro { color: #6f737b; margin: 4px 0 20px; font-size: 13px; }
+    .composer { border: 1px solid #d8d7d4; background: #fff; box-shadow: 0 8px 26px rgba(50,44,34,.07); transition: .2s; }
+    .composer:focus-within { border-color: #b79a6b; box-shadow: 0 8px 27px rgba(137,103,53,.11); }
+    .mode-row { height: 41px; border-bottom: 1px solid #eeeef0; display: flex; align-items: end; padding: 0 17px; gap: 24px; }
+    .mode-btn { border: 0; background: transparent; color: #7a7e86; padding: 0 0 9px; position: relative; }
+    .mode-btn.active { color: #2d2f34; font-weight: 600; }
+    .mode-btn.active::after { content: ""; position: absolute; height: 2px; left: 0; right: 0; bottom: -1px; background: var(--gold); }
+    .mode-hint { margin-left: auto; padding-bottom: 10px; color: #a0a3aa; font-size: 11px; }
+    textarea { border: 0; outline: 0; width: 100%; resize: none; padding: 15px 18px 7px; height: 67px; color: #32343a; background: transparent; }
+    textarea::placeholder { color: #a5a8ae; }
+    .composer-tools { display: flex; align-items: center; padding: 5px 10px 11px 14px; gap: 8px; }
+    .tool-btn { border: 0; background: transparent; color: #70757e; display: flex; align-items: center; gap: 5px; padding: 6px 7px; font-size: 12px; }
+    .tool-btn:hover, .tool-btn.on { color: var(--gold-deep); background: var(--gold-soft); }
+    .tool-btn svg { width: 16px; height: 16px; }
+    .send-btn { margin-left: auto; width: 34px; height: 34px; border: 0; color: white; background: var(--gold); display: grid; place-items: center; transition: .18s; }
+    .send-btn:hover { background: var(--gold-deep); transform: translateY(-1px); }
+    .send-btn svg { width: 17px; height: 17px; }
+
+    .hero-side { margin: 24px 24px 24px 0; padding: 21px 21px 18px; background: rgba(247,244,238,.76); border-left: 1px solid #e8e1d5; position: relative; z-index: 1; }
+    .hero-side h3 { margin: 0 0 18px; font-size: 13px; font-weight: 600; color: #454035; }
+    .flow-step { display: grid; grid-template-columns: 28px 1fr; gap: 11px; position: relative; padding-bottom: 18px; }
+    .flow-step:not(:last-child)::after { content: ""; position: absolute; width: 1px; background: #d7c7ac; left: 13px; top: 27px; bottom: 2px; }
+    .step-icon { width: 27px; height: 27px; border: 1px solid #c8b187; background: #fff; color: var(--gold); display: grid; place-items: center; border-radius: 50%; font: 11px Georgia, serif; }
+    .flow-step b { display: block; font-size: 12px; font-weight: 600; margin-top: 1px; }
+    .flow-step span { display: block; font-size: 11px; color: #88837a; margin-top: 2px; }
+    .flow-foot { border-top: 1px solid #e0d7c7; padding-top: 11px; color: var(--gold-deep); font-size: 12px; display: flex; align-items: center; justify-content: space-between; }
+
+    .result-box { display: none; background: white; border: 1px solid #dfdedb; margin-top: 14px; padding: 17px 20px; box-shadow: var(--shadow); }
+    .result-box.show { display: grid; grid-template-columns: 34px 1fr; gap: 12px; animation: fade .25s ease; }
+    .ai-dot { width: 31px; height: 31px; display: grid; place-items: center; background: var(--gold); color: #fff; font: 12px Georgia, serif; }
+    .result-box h4 { margin: 0 0 3px; font-size: 14px; }
+    .result-box p { margin: 0; color: #70747b; font-size: 13px; }
+
+    .section-head { display: flex; align-items: end; justify-content: space-between; margin: 26px 0 13px; }
+    .section-head h2 { font-size: 18px; margin: 0; font-weight: 500; }
+    .section-head p { margin: 3px 0 0; color: #92959c; font-size: 12px; }
+    .more { border: 0; background: transparent; color: #7c7f85; font-size: 12px; }
+    .more:hover { color: var(--gold); }
+
+    .source-strip { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
+    .source-stat {
+      min-height: 158px; padding: 24px 25px 18px; background: #fffefa;
+      border: 1px solid #e9e4d9; border-radius: 12px; cursor: pointer;
+      transition: .18s ease; position: relative; box-shadow: 0 2px 8px rgba(65,55,39,.025);
+      display: flex; flex-direction: column;
+    }
+    .source-stat:hover, .source-stat.active { border-color: #d5c39e; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(90,71,41,.075); }
+    .source-top { display: flex; align-items: center; gap: 13px; }
+    .stat-icon {
+      width: 39px; height: 39px; flex: 0 0 39px; background: #f4efe3; color: #9c824e;
+      display: grid; place-items: center; border-radius: 9px;
+    }
+    .stat-icon svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.65; }
+    .stat-name { color: #4e4f50; font-size: 17px; line-height: 1.2; font-weight: 500; }
+    .stat-en { color: #9d824e; font-size: 9px; letter-spacing: .18em; font-weight: 600; margin-top: 4px; }
+    .stat-desc { color: #8a8c89; font-size: 12px; margin-top: 22px; }
+    .stat-link { margin-top: auto; padding-top: 17px; color: #917642; font-size: 11px; display: flex; align-items: center; justify-content: flex-end; gap: 7px; }
+    .stat-link svg { width: 13px; height: 13px; stroke: currentColor; fill: none; }
+
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; }
+    .feed, .insights { background: #fff; border: 1px solid var(--line); min-height: 320px; }
+    .feed-tabs { height: 46px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 24px; padding: 0 20px; }
+    .feed-tabs button { border: 0; background: transparent; color: #7f838b; height: 46px; padding: 0; position: relative; }
+    .feed-tabs button.active { color: var(--gold-deep); font-weight: 600; }
+    .feed-tabs button.active::after { content: ""; height: 2px; background: var(--gold); position: absolute; bottom: 0; left: 0; right: 0; }
+    .article-list { padding: 0 20px; }
+    .article { display: grid; grid-template-columns: 64px 1fr auto; gap: 15px; align-items: center; border-bottom: 1px solid #efeff1; padding: 16px 0; cursor: pointer; }
+    .article:last-child { border-bottom: 0; }
+    .article:hover .article-title { color: var(--gold-deep); }
+    .datebox { border-right: 1px solid #e0e0e2; color: #999ca2; font-size: 11px; line-height: 1.3; }
+    .datebox b { display: block; font: 20px/1 Georgia, serif; color: #555960; }
+    .article-title { font-size: 14px; margin-bottom: 4px; transition: .15s; }
+    .article-meta { font-size: 11px; color: #9a9da3; display: flex; gap: 12px; }
+    .tag { color: #81683f; background: #f5f0e7; padding: 2px 6px; font-size: 10px; white-space: nowrap; }
+
+    .insights { padding: 0 20px; }
+    .card-title { height: 46px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; font-weight: 600; }
+    .insight-card { display: grid; grid-template-columns: 70px 1fr; gap: 13px; padding: 17px 0; border-bottom: 1px solid #efeff1; cursor: pointer; }
+    .insight-card:last-child { border-bottom: 0; }
+    .thumb { height: 60px; background: linear-gradient(145deg, #4b4c4d, #28292c); position: relative; color: #d9c8a7; display: grid; place-items: center; font: 13px Georgia, serif; }
+    .thumb.light { background: linear-gradient(145deg, #c5b18d, #8e7043); color: #fff; }
+    .insight-card h4 { margin: 0 0 6px; font-size: 12px; line-height: 1.5; font-weight: 500; }
+    .insight-card:hover h4 { color: var(--gold-deep); }
+    .insight-card p { margin: 0; font-size: 10px; color: #999da4; }
+
+    .inner-head { background: #fff; border: 1px solid var(--line); padding: 24px 27px; display: flex; justify-content: space-between; align-items: center; }
+    .inner-head h2 { margin: 0 0 4px; font-size: 20px; font-weight: 500; }
+    .inner-head p { margin: 0; color: var(--muted); }
+    .primary { border: 0; background: var(--gold); color: white; padding: 9px 17px; }
+    .primary:hover { background: var(--gold-deep); }
+    .placeholder-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+    .placeholder-card { background: #fff; border: 1px solid var(--line); padding: 22px; min-height: 168px; cursor: pointer; transition: .18s; }
+    .placeholder-card:hover { border-color: #cbb997; transform: translateY(-2px); box-shadow: var(--shadow); }
+    .placeholder-card .mini { color: var(--gold); font-size: 11px; letter-spacing: .08em; }
+    .placeholder-card h3 { font-size: 15px; margin: 14px 0 7px; font-weight: 500; }
+    .placeholder-card p { margin: 0; color: #848891; font-size: 12px; }
+    .progress { height: 3px; background: #ececef; margin-top: 22px; }
+    .progress i { display: block; background: var(--gold); height: 100%; width: var(--p, 50%); }
+
+    .result-page-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      margin-bottom: 16px;
+    }
+    .back-btn { border: 0; background: transparent; color: #626b78; padding: 7px 0; display: flex; align-items: center; gap: 7px; }
+    .back-btn:hover { color: var(--gold-deep); }
+    .back-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; transform: rotate(180deg); }
+    .result-context { display: flex; align-items: center; gap: 9px; color: #818790; font-size: 11px; }
+    .result-mode-badge { background: #f3ede2; color: #8f6b33; padding: 4px 8px; letter-spacing: .08em; font-weight: 600; }
+    .result-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+    .answer-pane { background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .question-block { padding: 22px 27px; border-bottom: 1px solid var(--line); background: #fdfdfd; }
+    .question-label { color: #9a7a47; font-size: 10px; letter-spacing: .13em; font-weight: 600; }
+    .question-block h2 { margin: 7px 0 0; font-size: 19px; line-height: 1.55; font-weight: 500; }
+    .answer-body { padding: 28px 30px 22px; color: #3a3d43; }
+    .ai-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+    .ai-spark { width: 27px; height: 27px; display: grid; place-items: center; color: white; background: linear-gradient(145deg, #b08b50, #80602f); }
+    .ai-spark svg { width: 15px; height: 15px; stroke: currentColor; fill: none; }
+    .ai-heading b { font-size: 15px; font-weight: 600; }
+    .answer-lead { margin: 0 0 23px; color: #555a62; line-height: 1.9; }
+    .answer-body h3 { font-size: 16px; margin: 24px 0 10px; font-weight: 600; }
+    .answer-body p { margin: 0 0 12px; line-height: 1.9; }
+    .answer-body ul { padding-left: 21px; margin: 8px 0 18px; }
+    .answer-body li { padding: 4px 0; line-height: 1.8; }
+    .answer-body sup { display: inline-grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px; margin: 0 2px; border-radius: 9px; background: #f0ebe2; color: #8d6c38; font-size: 9px; cursor: pointer; }
+    .risk-note { margin-top: 22px; border-left: 3px solid #b59259; background: #faf7f1; padding: 13px 15px; color: #6f675a; font-size: 12px; line-height: 1.7; }
+    .work-track { display: none; margin: 0 30px 5px; border: 1px solid #e7dfd1; background: #fcfaf6; padding: 15px 18px; }
+    .work-track.show { display: block; }
+    .work-track-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 11px; font-size: 12px; }
+    .work-track-top b { font-weight: 600; }
+    .work-track-top span { color: #8a6c3c; }
+    .research-steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+    .research-step { color: #7f858e; font-size: 10px; position: relative; padding-top: 10px; }
+    .research-step::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #d3c2a4; }
+    .research-step.done { color: #6d532b; }
+    .research-step.done::before { background: #9b7a45; }
+    .citation-box { margin-top: 26px; border-top: 1px solid #ececef; padding-top: 19px; }
+    .citation-box h4 { margin: 0 0 12px; font-size: 13px; font-weight: 600; }
+    .citation-list { display: grid; gap: 8px; }
+    .citation-item { border: 1px solid #e4e5e8; padding: 11px 13px; display: grid; grid-template-columns: 23px 1fr auto; gap: 9px; align-items: center; cursor: pointer; }
+    .citation-item:hover { border-color: #cdbb9b; background: #fdfbf7; }
+    .citation-num { width: 22px; height: 22px; border-radius: 50%; background: #f2eee7; color: #8f6d38; display: grid; place-items: center; font-size: 10px; }
+    .citation-item b { display: block; font-size: 11px; font-weight: 500; }
+    .citation-item span { color: #9a9da3; font-size: 9px; }
+    .citation-item svg { width: 13px; height: 13px; stroke: #999; fill: none; }
+    .answer-actions { border-top: 1px solid #ececef; margin-top: 23px; padding-top: 14px; display: flex; align-items: center; gap: 7px; }
+    .answer-action { border: 0; background: transparent; color: #747982; padding: 6px 9px; font-size: 11px; }
+    .answer-action:hover { background: #f5f2ed; color: #836536; }
+    .answer-action.primary-action { margin-left: auto; color: #80602f; border: 1px solid #d7c4a2; }
+    .followup-box { border-top: 1px solid var(--line); padding: 16px 20px; display: flex; align-items: center; gap: 8px; }
+    .followup-box input { height: 40px; flex: 1; border: 1px solid #dfe1e5; outline: none; padding: 0 13px; background: #fbfbfb; }
+    .followup-box input:focus { border-color: #bba174; background: #fff; }
+    .followup-send { width: 40px; height: 40px; border: 0; background: var(--gold); color: white; display: grid; place-items: center; }
+    .followup-send svg { width: 16px; height: 16px; }
+    .result-aside { display: grid; gap: 15px; position: sticky; top: 158px; }
+    .aside-card { background: #fff; border: 1px solid var(--line); padding: 18px 18px 16px; box-shadow: 0 3px 13px rgba(40,44,50,.035); }
+    .aside-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .aside-title h3 { margin: 0; font-size: 14px; font-weight: 600; }
+    .aside-title span { color: #a0875e; font-size: 10px; }
+    .related-list { display: grid; }
+    .related-question { border: 0; border-top: 1px solid #ededee; background: transparent; color: #4e535b; padding: 12px 1px; text-align: left; display: grid; grid-template-columns: 1fr 15px; gap: 8px; line-height: 1.6; font-size: 12px; }
+    .related-question:first-child { border-top: 0; }
+    .related-question:hover { color: #8a6835; }
+    .related-question svg { width: 13px; height: 13px; stroke: currentColor; fill: none; margin-top: 3px; }
+    .lawyer-note { color: #8b8f96; font-size: 10px; margin: -5px 0 12px; }
+    .lawyer-list { display: grid; gap: 9px; }
+    .lawyer-card { border: 1px solid #e7e3db; background: #fffefa; padding: 12px; display: grid; grid-template-columns: 43px 1fr auto; gap: 10px; align-items: center; cursor: pointer; transition: .16s; }
+    .lawyer-card:hover { border-color: #cbb78f; transform: translateY(-1px); box-shadow: 0 5px 13px rgba(84,65,35,.06); }
+    .lawyer-avatar { width: 43px; height: 48px; background: linear-gradient(145deg, #e8e2d8, #cfc2ad); color: #735a35; display: grid; place-items: center; font-family: Georgia, serif; font-size: 17px; }
+    .lawyer-info b { display: block; font-size: 12px; font-weight: 600; }
+    .lawyer-info span { display: block; font-size: 9px; color: #8f9399; margin-top: 2px; }
+    .lawyer-tags { color: #8a6a38 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+    .match { text-align: right; color: #9a7640; font: 14px Georgia, serif; }
+    .match small { display: block; color: #a3a6ab; font: 8px sans-serif; }
+    .source-preview { border: 1px solid #e5e6e9; padding: 13px; cursor: pointer; }
+    .source-preview:hover { border-color: #cbb78f; }
+    .source-domain { color: #8f939a; font-size: 9px; margin-bottom: 6px; }
+    .source-preview b { display: block; font-size: 12px; line-height: 1.5; margin-bottom: 4px; }
+    .source-preview p { margin: 0; color: #8b8f96; font-size: 10px; line-height: 1.5; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 40; color: #fff; background: #35373b; padding: 11px 16px; box-shadow: 0 8px 25px rgba(0,0,0,.18); opacity: 0; transform: translateY(9px); pointer-events: none; transition: .2s; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 1080px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-side { display: none; }
+      .source-strip { grid-template-columns: repeat(2,1fr); }
+      .source-stat { border-bottom: 1px solid var(--line); }
+      .content-grid { grid-template-columns: 1fr; }
+      .insights { display: none; }
+      .jurisdiction-panel { width: min(680px, calc(100vw - 216px)); }
+      .result-layout { grid-template-columns: 1fr; }
+      .result-aside { position: static; grid-template-columns: 1fr 1fr; }
+      .result-aside .aside-card:last-child { grid-column: 1 / -1; }
+    }
+    @media (max-width: 720px) {
+      .app { grid-template-columns: 74px 1fr; }
+      .sidebar { width: 74px; }
+      .brand { height: 72px; min-height: 72px; }
+      .brand-logo { width: 58px; }
+      .nav-item span { display: none; }
+      .nav-item { min-height: 55px; }
+      .nav-item svg { width: 22px; height: 22px; }
+      .main-nav { padding: 8px; }
+      .topbar { height: 72px; }
+      .topbar { padding: 0 15px; }
+      .crumbs span, .user span { display: none; }
+      .subnav { top: 72px; padding: 0 15px; gap: 18px; overflow-x: auto; }
+      .subnav-title { display: none; }
+      main { padding: 15px; }
+      .hero-main { padding: 23px 18px; }
+      h1 { font-size: 22px; }
+      .mode-hint { display: none; }
+      .tool-btn span { display: none; }
+      .source-strip { grid-template-columns: 1fr; }
+      .placeholder-grid { grid-template-columns: 1fr; }
+      .article { grid-template-columns: 50px 1fr; }
+      .article .tag { display: none; }
+      .jurisdiction-panel { width: calc(100vw - 104px); padding: 18px; }
+      .country-grid { grid-template-columns: 1fr; }
+      .result-aside { grid-template-columns: 1fr; }
+      .result-aside .aside-card:last-child { grid-column: auto; }
+      .answer-body { padding: 22px 18px 18px; }
+      .question-block { padding: 18px; }
+      .research-steps { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute">
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.3 3 14.7 0 18M12 3c-3 3.3-3 14.7 0 18"/></symbol>
+    <symbol id="i-legal-shield" viewBox="0 0 24 24"><path d="M5 3h11v15H5zM8 7h5M8 10h5"/><path d="M16 11l4 1.6v3.2c0 2.5-1.6 4.1-4 5.2-2.4-1.1-4-2.7-4-5.2v-3.2zM14.5 16l1.1 1.1 2.1-2.3"/></symbol>
+    <symbol id="i-dashboard" viewBox="0 0 24 24"><path d="M5 17a8 8 0 1114 0M8 14l4-4M7 17h10"/><circle cx="12" cy="10" r="1"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="16.5" cy="10" r="2.5"/><path d="M3 20c.6-4 2.6-6 6-6 3.5 0 5.4 2 6 6M15 15c3 0 4.7 1.7 5 5"/></symbol>
+    <symbol id="i-business" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 4v16M8 9h12M12 7v4M16 7v4"/></symbol>
+    <symbol id="i-approval" viewBox="0 0 24 24"><path d="M5 3h12v18H5zM8 7h6M8 11h4"/><circle cx="16" cy="16" r="3"/><path d="M14.5 16l1 1 2-2"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 9h16M15 12h6v5h-6zM17.5 14.5h.1"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><path d="M5 3h14v6H5zM5 9h14v6H5zM5 15h14v6H5zM8 6h.1M8 12h.1M8 18h.1M12 6h4M12 12h4M12 18h4"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-4 3.1-6 7-6s6.2 2 7 6"/></symbol>
+    <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="1"/><path d="M9 7V4h6v3M3 12h18M10 12v2h4v-2"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V9h4v11M10 20V4h4v16M16 20v-7h4v7M2 20h20"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5c4-1 6 0 8 2v14c-2-2-4-3-8-2zM20 5c-4-1-6 0-8 2v14c2-2 4-3 8-2z"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 9a6 6 0 00-12 0c0 7-3 7-3 8h18c0-1-3-1-3-8M10 21h4"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M16 16l5 5"/></symbol>
+    <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="M8 12.5l6.5-6.5a3 3 0 114.2 4.2L10 19a5 5 0 01-7-7l9-9"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2l1.4 5.6L19 9l-5.6 1.4L12 16l-1.4-5.6L5 9l5.6-1.4zM19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7z"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-6zM11 14l9-10"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 12h6M9 16h6"/></symbol>
+    <symbol id="i-case" viewBox="0 0 24 24"><path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5"/></symbol>
+    <symbol id="i-case-search" viewBox="0 0 24 24"><path d="M5 3h14v18H5zM8 7h6M8 11h5"/><circle cx="16" cy="15" r="2.5"/><path d="M18 17l2 2"/></symbol>
+    <symbol id="i-policy" viewBox="0 0 24 24"><path d="M4 10v4l11 4V6zM15 9h3a2 2 0 010 4h-3M7 15l1 5h3l-1-4"/></symbol>
+    <symbol id="i-industry" viewBox="0 0 24 24"><path d="M3 9l9-6 9 6M5 10h14M6 10v8M10 10v8M14 10v8M18 10v8M3 19h18"/></symbol>
+    <symbol id="i-news" viewBox="0 0 24 24"><path d="M4 5h16v15H4zM7 8h5v4H7zM14 8h3M14 11h3M7 15h10M7 18h7"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  </svg>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand" aria-label="WINSON 文森">
+        <svg class="brand-logo" viewBox="0 0 84 60" aria-hidden="true">
+          <g class="logo-lines"><path d="M24 22h36M42 8v27M29 14l-9 17M55 14l9 17M18 31h12c0 5-2.6 8-6 8s-6-3-6-8zM54 31h12c0 5-2.6 8-6 8s-6-3-6-8zM35 11h14M32 40h20"/></g>
+          <text class="logo-word" x="42" y="54" text-anchor="middle">WINSON</text>
+        </svg>
+      </div>
+      <nav class="main-nav" aria-label="主平台导航">
+        <button class="nav-item active" data-main="全球法律洞察"><svg><use href="#i-legal-shield"/></svg><span>全球法律洞察</span></button>
+        <button class="nav-item" data-main="个人工作台"><svg><use href="#i-dashboard"/></svg><span>个人工作台</span></button>
+        <button class="nav-item" data-main="客户中心"><svg><use href="#i-users"/></svg><span>客户中心</span></button>
+        <button class="nav-item" data-main="业务管理"><svg><use href="#i-business"/></svg><span>业务管理</span></button>
+        <button class="nav-item" data-main="计时管理"><svg><use href="#i-clock"/></svg><span>计时管理</span></button>
+        <button class="nav-item" data-main="审批管理"><svg><use href="#i-approval"/></svg><span>审批管理</span></button>
+        <button class="nav-item" data-main="财务管理"><svg><use href="#i-wallet"/></svg><span>财务管理</span></button>
+        <button class="nav-item" data-main="数据管理"><svg><use href="#i-server"/></svg><span>数据管理</span></button>
+        <button class="nav-item" data-main="知识中心"><svg><use href="#i-book"/></svg><span>知识中心</span></button>
+      </nav>
+    </aside>
+
+    <div class="shell">
+      <header class="topbar">
+        <div class="crumbs"><b>文森律所运营</b><span class="slash">/</span><span>全球法律洞察</span></div>
+        <div class="top-actions">
+          <button class="icon-btn" aria-label="搜索"><svg><use href="#i-search"/></svg></button>
+          <button class="icon-btn" aria-label="通知"><svg><use href="#i-bell"/></svg><i class="dot"></i></button>
+          <div class="user"><div class="avatar">陈</div><span>陈律师</span><span style="color:#aaa">⌄</span></div>
+        </div>
+      </header>
+
+      <nav class="subnav" aria-label="全球法律洞察二级导航">
+        <div class="subnav-title">全球法律洞察</div>
+        <button class="active" data-view="home">研究首页</button>
+        <button data-view="chats">我的对话</button>
+        <button data-view="work">Work</button>
+        <button data-view="insight">文森洞察</button>
+      </nav>
+
+      <main>
+        <div class="jurisdiction-wrap" id="jurisdictionWrap">
+          <button class="jurisdiction-trigger" id="jurisdictionTrigger" aria-haspopup="true" aria-expanded="false">
+            <span class="jurisdiction-code" id="currentCode">SA</span>
+            <span class="jurisdiction-copy"><span class="jurisdiction-name" id="currentName">沙特阿拉伯</span><span class="jurisdiction-label">当前法域 / 研究范围</span></span>
+            <span class="jurisdiction-caret" aria-hidden="true"></span>
+          </button>
+          <div class="jurisdiction-panel" id="jurisdictionPanel" role="dialog" aria-label="选择当前法域">
+            <div class="scope-shortcuts">
+              <button class="scope-shortcut" data-code="ALL" data-name="全部法域">ALL <b>全部法域</b></button>
+              <button class="scope-shortcut" data-code="PENDING" data-name="待归属资料">PENDING <b>待归属资料</b></button>
+            </div>
+            <label for="countrySearch">搜索法域</label>
+            <div class="jurisdiction-search"><svg><use href="#i-search"/></svg><input id="countrySearch" type="search" placeholder="中国 / China / CN" autocomplete="off" /></div>
+            <div class="jurisdiction-count" id="jurisdictionCount">显示 16 / 250 个国家、地区及区域法域</div>
+            <div class="country-grid" id="countryGrid">
+              <button class="country-option" data-code="CN" data-name="中国（内地）" data-search="中国 China CN"><span class="country-code">CN</span><span class="country-name">中国（内地）</span></button>
+              <button class="country-option active" data-code="SA" data-name="沙特阿拉伯" data-search="沙特阿拉伯 Saudi Arabia SA"><span class="country-code">SA</span><span class="country-name">沙特阿拉伯</span></button>
+              <button class="country-option" data-code="AE" data-name="阿联酋" data-search="阿联酋 United Arab Emirates UAE AE"><span class="country-code">AE</span><span class="country-name">阿联酋</span></button>
+              <button class="country-option" data-code="QA" data-name="卡塔尔" data-search="卡塔尔 Qatar QA"><span class="country-code">QA</span><span class="country-name">卡塔尔</span></button>
+              <button class="country-option" data-code="IQ" data-name="伊拉克" data-search="伊拉克 Iraq IQ"><span class="country-code">IQ</span><span class="country-name">伊拉克</span></button>
+              <button class="country-option" data-code="OM" data-name="阿曼" data-search="阿曼 Oman OM"><span class="country-code">OM</span><span class="country-name">阿曼</span></button>
+              <button class="country-option" data-code="AD" data-name="安道尔" data-search="安道尔 Andorra AD"><span class="country-code">AD</span><span class="country-name">安道尔</span></button>
+              <button class="country-option" data-code="AF" data-name="阿富汗" data-search="阿富汗 Afghanistan AF"><span class="country-code">AF</span><span class="country-name">阿富汗</span></button>
+              <button class="country-option" data-code="AG" data-name="安提瓜和巴布达" data-search="安提瓜和巴布达 Antigua Barbuda AG"><span class="country-code">AG</span><span class="country-name">安提瓜和巴布达</span></button>
+              <button class="country-option" data-code="AI" data-name="安圭拉" data-search="安圭拉 Anguilla AI"><span class="country-code">AI</span><span class="country-name">安圭拉</span></button>
+              <button class="country-option" data-code="AL" data-name="阿尔巴尼亚" data-search="阿尔巴尼亚 Albania AL"><span class="country-code">AL</span><span class="country-name">阿尔巴尼亚</span></button>
+              <button class="country-option" data-code="AM" data-name="亚美尼亚" data-search="亚美尼亚 Armenia AM"><span class="country-code">AM</span><span class="country-name">亚美尼亚</span></button>
+              <button class="country-option" data-code="AO" data-name="安哥拉" data-search="安哥拉 Angola AO"><span class="country-code">AO</span><span class="country-name">安哥拉</span></button>
+              <button class="country-option" data-code="AQ" data-name="南极洲" data-search="南极洲 Antarctica AQ"><span class="country-code">AQ</span><span class="country-name">南极洲</span></button>
+              <button class="country-option" data-code="AR" data-name="阿根廷" data-search="阿根廷 Argentina AR"><span class="country-code">AR</span><span class="country-name">阿根廷</span></button>
+              <button class="country-option" data-code="AS" data-name="美属萨摩亚" data-search="美属萨摩亚 American Samoa AS"><span class="country-code">AS</span><span class="country-name">美属萨摩亚</span></button>
+            </div>
+            <div class="country-empty" id="countryEmpty">没有匹配的法域</div>
+            <div class="jurisdiction-note">可选范围不等于资料已收录；法律适用仍以具体法域和版本为准。</div>
+          </div>
+        </div>
+        <section class="page-view active" id="view-home">
+          <div class="hero">
+            <div class="hero-main">
+              <div class="eyebrow">GLOBAL LEGAL INTELLIGENCE</div>
+              <h1>从一个法律问题开始</h1>
+              <p class="hero-intro">连接全球法规、判例、政策与律所知识，形成可靠、可追溯的研究成果。</p>
+              <div class="composer">
+                <div class="mode-row">
+                  <button class="mode-btn active" data-mode="chat">Chat</button>
+                  <button class="mode-btn" data-mode="work">Work</button>
+                  <span class="mode-hint">即时问答、检索与快速分析</span>
+                </div>
+                <textarea id="question" aria-label="法律研究问题" placeholder="请输入你想研究的法律问题，例如：分析新能源汽车数据出境的最新监管要求及合规风险"></textarea>
+                <div class="composer-tools">
+                  <button class="tool-btn" data-tool="附件"><svg><use href="#i-paperclip"/></svg><span>添加附件</span></button>
+                  <button class="tool-btn on" data-tool="法律检索"><svg><use href="#i-search"/></svg><span>法律检索</span></button>
+                  <button class="tool-btn" data-tool="深入研究"><svg><use href="#i-spark"/></svg><span>深入研究</span></button>
+                  <button class="send-btn" id="send" aria-label="发送"><svg><use href="#i-send"/></svg></button>
+                </div>
+              </div>
+            </div>
+            <aside class="hero-side">
+              <h3>从资料到洞察</h3>
+              <div class="flow-step"><div class="step-icon">01</div><div><b>权威资料层</b><span>法规 · 判例 · 政策 · 行业资料</span></div></div>
+              <div class="flow-step"><div class="step-icon">02</div><div><b>AI 研究层</b><span>Chat 快速分析 / Work 深度研究</span></div></div>
+              <div class="flow-step"><div class="step-icon">03</div><div><b>专业成果层</b><span>研究报告 · 风险清单 · 文森洞察</span></div></div>
+              <div class="flow-foot"><span>资料可追溯 · 结论可复核</span><svg width="15" height="15"><use href="#i-chevron"/></svg></div>
+            </aside>
+          </div>
+
+          <div class="result-box" id="result"><div class="ai-dot">AI</div><div><h4 id="result-title">已创建法律检索任务</h4><p id="result-text">正在从法律法规、司法判例和政策动态中匹配相关依据。本原型仅展示交互效果。</p></div></div>
+
+          <div class="section-head"><div><h2 id="sourceTitle">沙特阿拉伯法律资料</h2><p id="sourceSubtitle">汇聚沙特阿拉伯权威资料，为 AI 研究提供可信依据</p></div><button class="more" id="allSources">查看全部资料 →</button></div>
+          <div class="source-strip">
+            <div class="source-stat" data-source="法律法条">
+              <div class="source-top"><div class="stat-icon"><svg><use href="#i-file"/></svg></div><div><div class="stat-name">法律法条</div><div class="stat-en">LAWS</div></div></div>
+              <div class="stat-desc" data-base="现行法律、版本与动态">沙特阿拉伯现行法律、版本与动态</div>
+              <div class="stat-link">查看内容 <svg><use href="#i-chevron"/></svg></div>
+            </div>
+            <div class="source-stat" data-source="司法判例">
+              <div class="source-top"><div class="stat-icon"><svg><use href="#i-case-search"/></svg></div><div><div class="stat-name">司法判例</div><div class="stat-en">CASES</div></div></div>
+              <div class="stat-desc" data-base="判例要旨与适用语境">沙特阿拉伯判例要旨与适用语境</div>
+              <div class="stat-link">查看内容 <svg><use href="#i-chevron"/></svg></div>
+            </div>
+            <div class="source-stat" data-source="政策动态">
+              <div class="source-top"><div class="stat-icon"><svg><use href="#i-policy"/></svg></div><div><div class="stat-name">政策动态</div><div class="stat-en">POLICY</div></div></div>
+              <div class="stat-desc" data-base="监管政策、公报与实施口径">沙特阿拉伯监管政策、公报与实施口径</div>
+              <div class="stat-link">查看内容 <svg><use href="#i-chevron"/></svg></div>
+            </div>
+            <div class="source-stat" data-source="行业资讯">
+              <div class="source-top"><div class="stat-icon"><svg><use href="#i-industry"/></svg></div><div><div class="stat-name">行业资讯</div><div class="stat-en">INDUSTRY</div></div></div>
+              <div class="stat-desc" data-base="行业变化与项目影响">沙特阿拉伯行业变化与项目影响</div>
+              <div class="stat-link">查看内容 <svg><use href="#i-chevron"/></svg></div>
+            </div>
+          </div>
+
+          <div class="section-head"><div><h2>最新法律动态</h2><p>聚合全球重点法域的监管变化与司法进展</p></div><button class="more" id="moreNews">更多动态 →</button></div>
+          <div class="content-grid">
+            <section class="feed">
+              <div class="feed-tabs"><button class="active" data-feed="全部">全部</button><button data-feed="中国">中国</button><button data-feed="亚洲">亚洲</button><button data-feed="欧美">欧美</button><button data-feed="其他法域">其他法域</button></div>
+              <div class="article-list">
+                <article class="article" data-title="数据跨境流动监管规则迎来最新调整"><div class="datebox"><b>19</b>2026.10</div><div><div class="article-title">数据跨境流动监管规则迎来最新调整，企业合规路径进一步明确</div><div class="article-meta"><span>国家网信主管部门</span><span>数据合规</span><span>约 8 分钟阅读</span></div></div><span class="tag">政策动态</span></article>
+                <article class="article" data-title="最高人民法院发布涉外商事审判典型案例"><div class="datebox"><b>17</b>2026.10</div><div><div class="article-title">最高人民法院发布涉外商事审判典型案例：裁判规则与实务要点</div><div class="article-meta"><span>最高人民法院</span><span>争议解决</span><span>约 12 分钟阅读</span></div></div><span class="tag">司法判例</span></article>
+                <article class="article" data-title="欧盟人工智能监管合规窗口期临近"><div class="datebox"><b>15</b>2026.10</div><div><div class="article-title">欧盟人工智能监管合规窗口期临近：中国企业应关注的五项义务</div><div class="article-meta"><span>欧盟</span><span>人工智能</span><span>约 10 分钟阅读</span></div></div><span class="tag">全球监管</span></article>
+                <article class="article" data-title="新能源汽车出海合规观察"><div class="datebox"><b>12</b>2026.10</div><div><div class="article-title">新能源汽车出海合规观察：供应链、数据与产品责任风险</div><div class="article-meta"><span>行业研究</span><span>汽车与制造</span><span>约 9 分钟阅读</span></div></div><span class="tag">行业资讯</span></article>
+              </div>
+            </section>
+            <aside class="insights">
+              <div class="card-title"><span>文森洞察</span><button class="more" data-open="insight">查看全部 →</button></div>
+              <div class="insight-card"><div class="thumb">W&amp;S</div><div><h4>全球数据合规月报：监管趋向与执法观察</h4><p>数字经济专业委员会 · 10月刊</p></div></div>
+              <div class="insight-card"><div class="thumb light">INSIGHT</div><div><h4>企业出海：东南亚重点法域投资指南</h4><p>跨境业务组 · 专题研究</p></div></div>
+              <div class="insight-card"><div class="thumb">LEGAL</div><div><h4>生成式人工智能服务的责任边界</h4><p>科技与数据团队 · 深度解读</p></div></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="page-view" id="view-chats">
+          <div class="inner-head"><div><h2>我的对话</h2><p>继续最近的法律检索、法规解读与快速分析。</p></div><button class="primary" data-home-mode="chat">＋ 新建对话</button></div>
+          <div class="placeholder-grid">
+            <div class="placeholder-card"><span class="mini">今天 · CHAT</span><h3>新能源汽车数据出境监管要求</h3><p>已引用 12 条法律法规、3 个监管问答</p></div>
+            <div class="placeholder-card"><span class="mini">昨天 · CHAT</span><h3>英国法下保证与赔偿条款的区别</h3><p>已引用 6 个判例、2 篇专业文章</p></div>
+            <div class="placeholder-card"><span class="mini">10 月 16 日 · CHAT</span><h3>劳动合同竞业限制条款审查</h3><p>已生成条款修改建议</p></div>
+          </div>
+        </section>
+
+        <section class="page-view" id="view-work">
+          <div class="inner-head"><div><h2>Work 深度研究</h2><p>把复杂问题拆解为可执行步骤，由 AI 完成检索、阅读、验证与报告。</p></div><button class="primary" data-home-mode="work">＋ 发起研究</button></div>
+          <div class="placeholder-grid">
+            <div class="placeholder-card"><span class="mini">进行中 · 68%</span><h3>东南亚四国数据合规比较研究</h3><p>正在交叉验证泰国与越南监管规则</p><div class="progress"><i style="--p:68%"></i></div></div>
+            <div class="placeholder-card"><span class="mini">待复核 · 92%</span><h3>境外上市网络安全审查专题报告</h3><p>已完成初稿，待律师复核关键结论</p><div class="progress"><i style="--p:92%"></i></div></div>
+            <div class="placeholder-card"><span class="mini">已完成 · 100%</span><h3>美国出口管制规则更新影响分析</h3><p>已沉淀至研究项目并生成客户简报</p><div class="progress"><i style="--p:100%"></i></div></div>
+          </div>
+        </section>
+
+        <section class="page-view" id="view-result">
+          <div class="result-page-head">
+            <button class="back-btn" id="resultBack"><svg><use href="#i-chevron"/></svg>返回研究首页</button>
+            <div class="result-context"><span class="result-mode-badge" id="resultModeBadge">CHAT</span><span id="resultScope">沙特阿拉伯法域</span><span>·</span><span>资料已核验</span></div>
+          </div>
+          <div class="result-layout">
+            <article class="answer-pane">
+              <header class="question-block"><div class="question-label">YOUR QUESTION</div><h2 id="resultQuestion">沙特阿拉伯的数据跨境传输有哪些核心合规要求？</h2></header>
+              <div class="work-track" id="workTrack">
+                <div class="work-track-top"><b>Work 深度研究已完成</b><span>4 / 4 步骤</span></div>
+                <div class="research-steps"><div class="research-step done">检索法规</div><div class="research-step done">阅读材料</div><div class="research-step done">交叉验证</div><div class="research-step done">形成报告</div></div>
+              </div>
+              <div class="answer-body">
+                <div class="ai-heading"><span class="ai-spark"><svg><use href="#i-spark"/></svg></span><b>AI 法律研究概览</b></div>
+                <p class="answer-lead" id="answerLead">基于当前选择的沙特阿拉伯法域和已收录资料，企业在处理跨境数据业务时，需要同时关注处理依据、数据主体权利、跨境传输条件及行业特别监管要求。</p>
+
+                <h3>核心结论</h3>
+                <p>相关业务不宜只按“数据是否离境”作单一判断，还应结合数据类型、处理目的、接收方所在地及行业属性进行分层评估。<sup>1</sup><sup>2</sup></p>
+                <ul>
+                  <li><b>确认适用范围：</b>梳理控制者、处理者、境外接收方以及实际数据流向，确认当前法域规则是否具有域外适用情形。</li>
+                  <li><b>落实合法处理基础：</b>逐项记录处理目的、必要性和保存期限；涉及敏感或高风险数据时，应采取更严格的授权与保护措施。<sup>1</sup></li>
+                  <li><b>开展传输风险评估：</b>在向境外提供数据前，对接收方保障能力、目的地法律环境和再转移安排进行审查。<sup>2</sup></li>
+                  <li><b>关注行业特别要求：</b>金融、医疗、通信及公共服务等领域可能存在数据本地化、备案或监管批准要求。<sup>3</sup></li>
+                </ul>
+
+                <h3>建议的落地路径</h3>
+                <p>建议先完成数据地图与传输场景清单，再依据风险等级配置合同条款、内部审批、影响评估和持续审计机制。对于尚无明确监管口径的场景，应保留决策记录并获取当地法律意见。</p>
+                <div class="risk-note">提示：本页面为产品原型中的 AI 研究示例，不构成正式法律意见。实际项目应以最新有效法规、监管解释及专业律师复核结果为准。</div>
+
+                <div class="citation-box">
+                  <h4>引用与参考资料</h4>
+                  <div class="citation-list">
+                    <div class="citation-item"><span class="citation-num">1</span><div><b id="citationOne">沙特阿拉伯个人数据保护制度与实施规则</b><span>法律法条 · 当前有效版本</span></div><svg><use href="#i-chevron"/></svg></div>
+                    <div class="citation-item"><span class="citation-num">2</span><div><b id="citationTwo">跨境传输与数据处理实务指引</b><span>监管指引 · 已核验</span></div><svg><use href="#i-chevron"/></svg></div>
+                    <div class="citation-item"><span class="citation-num">3</span><div><b id="citationThree">数字经济及重点行业监管动态</b><span>政策动态 · 持续更新</span></div><svg><use href="#i-chevron"/></svg></div>
+                  </div>
+                </div>
+                <div class="answer-actions"><button class="answer-action" id="copyAnswer">复制回答</button><button class="answer-action" id="regenerateAnswer">重新生成</button><button class="answer-action">有帮助</button><button class="answer-action primary-action" id="addToWork">加入 Work 深度研究</button></div>
+              </div>
+              <div class="followup-box"><input id="followupInput" placeholder="继续追问，例如：需要准备哪些内部合规文件？" /><button class="followup-send" id="followupSend" aria-label="发送追问"><svg><use href="#i-send"/></svg></button></div>
+            </article>
+
+            <aside class="result-aside">
+              <section class="aside-card">
+                <div class="aside-title"><h3>相关问题</h3><span>继续探索</span></div>
+                <div class="related-list" id="relatedQuestions">
+                  <button class="related-question"><span>跨境传输前需要完成哪些内部评估？</span><svg><use href="#i-chevron"/></svg></button>
+                  <button class="related-question"><span>敏感个人数据的处理要求有哪些不同？</span><svg><use href="#i-chevron"/></svg></button>
+                  <button class="related-question"><span>境外接收方应承担哪些合同义务？</span><svg><use href="#i-chevron"/></svg></button>
+                  <button class="related-question"><span>违规处理数据可能面临哪些法律责任？</span><svg><use href="#i-chevron"/></svg></button>
+                </div>
+              </section>
+
+              <section class="aside-card">
+                <div class="aside-title"><h3>专业金牌律师</h3><span>智能匹配</span></div>
+                <p class="lawyer-note" id="lawyerNote">根据沙特阿拉伯法域、问题类型与项目经验推荐</p>
+                <div class="lawyer-list">
+                  <div class="lawyer-card" data-lawyer="陈明远"><div class="lawyer-avatar">陈</div><div class="lawyer-info"><b>陈明远</b><span>高级合伙人 · 上海</span><span class="lawyer-tags">中东投资 · 跨境合规</span></div><div class="match">98<small>匹配度</small></div></div>
+                  <div class="lawyer-card" data-lawyer="林知远"><div class="lawyer-avatar">林</div><div class="lawyer-info"><b>林知远</b><span>合伙人 · 北京</span><span class="lawyer-tags">数据保护 · 科技监管</span></div><div class="match">95<small>匹配度</small></div></div>
+                  <div class="lawyer-card" data-lawyer="周婉宁"><div class="lawyer-avatar">周</div><div class="lawyer-info"><b>周婉宁</b><span>资深顾问 · 深圳</span><span class="lawyer-tags">国际业务 · 争议解决</span></div><div class="match">92<small>匹配度</small></div></div>
+                </div>
+              </section>
+
+              <section class="aside-card">
+                <div class="aside-title"><h3>权威资料</h3><span>3 项引用</span></div>
+                <div class="source-preview"><div class="source-domain" id="sourceDomain">SA · 官方法律资料</div><b id="sourcePreviewTitle">个人数据保护制度及跨境传输规则</b><p>包含现行法规、实施细则及相关监管口径。</p></div>
+              </section>
+            </aside>
+          </div>
+        </section>
+
+        <section class="page-view" id="view-projects">
+          <div class="inner-head"><div><h2>研究项目</h2><p>集中管理对话、资料、研究任务与最终成果，并可关联业务项目。</p></div><button class="primary" id="newProject">＋ 新建研究项目</button></div>
+          <div class="placeholder-grid">
+            <div class="placeholder-card"><span class="mini">跨境合规 · 12 项资料</span><h3>某新能源企业全球化合规支持</h3><p>关联业务项目：2026-NEV-018</p></div>
+            <div class="placeholder-card"><span class="mini">争议解决 · 8 项资料</span><h3>跨境供应合同争议法律研究</h3><p>关联业务项目：2026-DR-042</p></div>
+            <div class="placeholder-card"><span class="mini">公司业务 · 21 项资料</span><h3>人工智能公司红筹架构专题</h3><p>关联业务项目：2026-CORP-033</p></div>
+          </div>
+        </section>
+
+        <section class="page-view" id="view-insight">
+          <div class="inner-head"><div><h2>文森洞察</h2><p>由律师审核发布的专业成果，让研究过程转化为可复用的组织知识。</p></div><button class="primary" id="publishInsight">提交洞察</button></div>
+          <div class="placeholder-grid">
+            <div class="placeholder-card"><span class="mini">数据与科技 · 专题报告</span><h3>全球数据合规月报：监管趋向与执法观察</h3><p>数字经济专业委员会 · 2026 年 10 月</p></div>
+            <div class="placeholder-card"><span class="mini">跨境业务 · 实务指南</span><h3>企业出海：东南亚重点法域投资指南</h3><p>跨境业务组 · 第三版</p></div>
+            <div class="placeholder-card"><span class="mini">公司与资本市场 · 观点</span><h3>生成式人工智能企业的资本化路径</h3><p>科技与数据团队 · 深度解读</p></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <div class="toast" id="toast">操作成功</div>
+
+  <script>
+    const $ = (s, root = document) => root.querySelector(s);
+    const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+    const toast = (text) => {
+      const el = $('#toast'); el.textContent = text; el.classList.add('show');
+      clearTimeout(window.__toast); window.__toast = setTimeout(() => el.classList.remove('show'), 1900);
+    };
+
+    let currentJurisdiction = { code: 'SA', name: '沙特阿拉伯' };
+    const jurisdictionWrap = $('#jurisdictionWrap');
+    const jurisdictionTrigger = $('#jurisdictionTrigger');
+    const closeJurisdiction = () => {
+      jurisdictionWrap.classList.remove('open');
+      jurisdictionTrigger.setAttribute('aria-expanded', 'false');
+    };
+    const setJurisdiction = (code, name) => {
+      currentJurisdiction = { code, name };
+      $('#currentCode').textContent = code;
+      $('#currentCode').style.fontSize = code.length > 3 ? '9px' : '17px';
+      $('#currentName').textContent = name;
+      $$('.country-option').forEach(item => item.classList.toggle('active', item.dataset.code === code));
+      $$('.scope-shortcut').forEach(item => item.classList.toggle('active', item.dataset.code === code));
+
+      if (code === 'ALL') {
+        $('#sourceTitle').textContent = '全球法律资料';
+        $('#sourceSubtitle').textContent = '持续汇聚多法域权威资料，为 AI 研究提供可信依据';
+        $$('.stat-desc').forEach(item => item.textContent = item.dataset.base);
+      } else if (code === 'PENDING') {
+        $('#sourceTitle').textContent = '待归属法律资料';
+        $('#sourceSubtitle').textContent = '集中展示尚待确认适用法域的资料，便于后续归类与核验';
+        $$('.stat-desc').forEach(item => item.textContent = `待归属资料 · ${item.dataset.base}`);
+      } else {
+        $('#sourceTitle').textContent = `${name}法律资料`;
+        $('#sourceSubtitle').textContent = `汇聚${name}权威资料，为 AI 研究提供可信依据`;
+        $$('.stat-desc').forEach(item => item.textContent = `${name}${item.dataset.base}`);
+      }
+      closeJurisdiction();
+      toast(`当前法域已切换为：${name}`);
+    };
+
+    jurisdictionTrigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = jurisdictionWrap.classList.toggle('open');
+      jurisdictionTrigger.setAttribute('aria-expanded', String(isOpen));
+      if (isOpen) {
+        $('#countrySearch').value = '';
+        $('#countrySearch').dispatchEvent(new Event('input'));
+        setTimeout(() => $('#countrySearch').focus(), 40);
+      }
+    });
+    $('#jurisdictionPanel').addEventListener('click', e => e.stopPropagation());
+    document.addEventListener('click', closeJurisdiction);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeJurisdiction(); });
+    $$('.country-option, .scope-shortcut').forEach(item => item.addEventListener('click', () => setJurisdiction(item.dataset.code, item.dataset.name)));
+    $('#countrySearch').addEventListener('input', e => {
+      const query = e.target.value.trim().toLowerCase();
+      let visible = 0;
+      $$('.country-option').forEach(item => {
+        const match = item.dataset.search.toLowerCase().includes(query);
+        item.hidden = !match;
+        if (match) visible += 1;
+      });
+      $('#jurisdictionCount').textContent = `显示 ${visible} / 250 个国家、地区及区域法域`;
+      $('#countryEmpty').style.display = visible ? 'none' : 'block';
+    });
+
+    const showView = (name) => {
+      $$('.subnav button').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+      $$('.page-view').forEach(v => v.classList.toggle('active', v.id === `view-${name}`));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    $$('.subnav button').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+    $$('[data-open]').forEach(b => b.addEventListener('click', () => showView(b.dataset.open)));
+
+    let currentResultMode = 'chat';
+    const openResult = (mode, question) => {
+      currentResultMode = mode;
+      const scopeName = currentJurisdiction.code === 'ALL' ? '全球' : currentJurisdiction.name;
+      const defaultQuestion = mode === 'work'
+        ? `请对${scopeName}数据跨境传输的监管要求开展深度研究`
+        : `${scopeName}的数据跨境传输有哪些核心合规要求？`;
+      const finalQuestion = question && question.trim() ? question.trim() : defaultQuestion;
+
+      $('#resultQuestion').textContent = finalQuestion;
+      $('#resultModeBadge').textContent = mode.toUpperCase();
+      $('#resultScope').textContent = `${scopeName}法域`;
+      $('#workTrack').classList.toggle('show', mode === 'work');
+      $('#addToWork').textContent = mode === 'work' ? '导出研究报告' : '加入 Work 深度研究';
+      $('#answerLead').textContent = `基于当前选择的${scopeName}法域和已收录资料，企业在处理相关业务时，需要同时关注适用范围、处理依据、权利保障、跨境安排及行业特别监管要求。`;
+      $('#citationOne').textContent = `${scopeName}个人数据保护制度与实施规则`;
+      $('#citationTwo').textContent = `${scopeName}跨境传输与数据处理实务指引`;
+      $('#citationThree').textContent = `${scopeName}数字经济及重点行业监管动态`;
+      $('#lawyerNote').textContent = `根据${scopeName}法域、问题类型与项目经验推荐`;
+      $('#sourceDomain').textContent = `${currentJurisdiction.code} · 官方法律资料`;
+      $('#sourcePreviewTitle').textContent = `${scopeName}个人数据保护制度及跨境传输规则`;
+      $$('#relatedQuestions .related-question').forEach((button, index) => {
+        const questions = [
+          `${scopeName}跨境传输前需要完成哪些内部评估？`,
+          `敏感个人数据在${scopeName}的处理要求有哪些不同？`,
+          `境外接收方应承担哪些合同义务？`,
+          `违反${scopeName}数据规则可能面临哪些责任？`
+        ];
+        button.querySelector('span').textContent = questions[index];
+      });
+
+      $$('.page-view').forEach(v => v.classList.toggle('active', v.id === 'view-result'));
+      $$('.subnav button').forEach(b => b.classList.toggle('active', b.dataset.view === (mode === 'work' ? 'work' : 'chats')));
+      $('#result').classList.remove('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    $$('.nav-item').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.main === '全球法律洞察') return;
+      toast(`${b.dataset.main}保持原平台入口，本原型聚焦全球法律洞察`);
+    }));
+
+    const selectMode = (mode) => {
+      $$('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+      const q = $('#question'), hint = $('.mode-hint');
+      if (mode === 'work') {
+        hint.textContent = '分步骤研究、交叉验证并输出报告';
+        q.placeholder = '描述一项复杂研究任务，例如：比较东南亚四国数据合规规则，并形成客户备忘录';
+        $('[data-tool="深入研究"]').classList.add('on');
+      } else {
+        hint.textContent = '即时问答、检索与快速分析';
+        q.placeholder = '请输入你想研究的法律问题，例如：分析新能源汽车数据出境的最新监管要求及合规风险';
+        $('[data-tool="深入研究"]').classList.remove('on');
+      }
+    };
+    $$('.mode-btn').forEach(b => b.addEventListener('click', () => selectMode(b.dataset.mode)));
+    $$('.tool-btn').forEach(b => b.addEventListener('click', () => { b.classList.toggle('on'); toast(`${b.dataset.tool}${b.classList.contains('on') ? '已开启' : '已关闭'}`); }));
+
+    $('#send').addEventListener('click', () => {
+      const q = $('#question').value.trim();
+      const mode = $('.mode-btn.active').dataset.mode;
+      openResult(mode, q);
+    });
+    $('#question').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#send').click(); } });
+
+    $$('[data-home-mode]').forEach(b => b.addEventListener('click', () => { showView('home'); setTimeout(() => { selectMode(b.dataset.homeMode); $('#question').focus(); }, 240); }));
+    $$('.source-stat').forEach(card => card.addEventListener('click', () => {
+      $$('.source-stat').forEach(c => c.classList.remove('active')); card.classList.add('active');
+      toast(`打开${currentJurisdiction.name} · ${card.dataset.source}`);
+    }));
+    $$('.feed-tabs button').forEach(b => b.addEventListener('click', () => { $$('.feed-tabs button').forEach(x => x.classList.remove('active')); b.classList.add('active'); toast(`正在展示${b.dataset.feed}法律动态`); }));
+    $$('.article').forEach(a => a.addEventListener('click', () => toast(`打开：${a.dataset.title}`)));
+    $$('.insight-card').forEach(c => c.addEventListener('click', () => toast('详情页交互已预留')));
+    $$('#view-chats .placeholder-card').forEach(c => c.addEventListener('click', () => openResult('chat', $('h3', c).textContent)));
+    $$('#view-work .placeholder-card').forEach(c => c.addEventListener('click', () => openResult('work', $('h3', c).textContent)));
+    $('#allSources').addEventListener('click', () => toast(`查看${currentJurisdiction.name}全部法律资料`));
+    $('#moreNews').addEventListener('click', () => toast('已加载更多法律动态'));
+    $('#newProject').addEventListener('click', () => toast('新建研究项目面板已预留'));
+    $('#publishInsight').addEventListener('click', () => toast('洞察提交与律师审核流程已预留'));
+    $('#resultBack').addEventListener('click', () => showView('home'));
+    $('#copyAnswer').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText($('.answer-body').innerText); toast('回答已复制'); }
+      catch { toast('已准备复制回答'); }
+    });
+    $('#regenerateAnswer').addEventListener('click', () => toast('已依据最新资料重新生成回答'));
+    $('#addToWork').addEventListener('click', () => {
+      if (currentResultMode === 'work') toast('研究报告已生成，可进入成果中心下载');
+      else openResult('work', $('#resultQuestion').textContent);
+    });
+    $$('#relatedQuestions .related-question').forEach(button => button.addEventListener('click', () => openResult(currentResultMode, $('span', button).textContent)));
+    $$('.lawyer-card').forEach(card => card.addEventListener('click', () => toast(`查看${card.dataset.lawyer}律师的专业履历`)));
+    $$('.citation-item, .source-preview').forEach(card => card.addEventListener('click', () => toast('已打开权威资料预览')));
+    const submitFollowup = () => {
+      const input = $('#followupInput');
+      if (!input.value.trim()) return toast('请输入追问内容');
+      openResult(currentResultMode, input.value);
+      input.value = '';
+    };
+    $('#followupSend').addEventListener('click', submitFollowup);
+    $('#followupInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitFollowup(); });
+  </script>
+</body>
+</html>
